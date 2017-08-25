@@ -12,9 +12,11 @@
 #import "Resnet50.h"
 #import <Vision/Vision.h>
 
+#define kGrayColor RGBCOLOR(60, 60, 60)
+
 @interface ViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
+
 @property (nonatomic, strong) UIImageView *imageView;
-@property (nonatomic, strong) UILabel *resultRateLabel;
 @property (nonatomic, strong) UILabel *resultLabel;
 @property (nonatomic, strong) UIImagePickerController *imagePickController;
 
@@ -27,38 +29,37 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.backgroundColor = kGrayColor;
     
     [self constructView];
 }
 
 - (void)constructView {
-    UIButton *selectImgBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    selectImgBtn.frame = CGRectMake(self.view.width * 0.5 - 20 - 90, self.imageView.bottom + 30, 90, 3);
-    [selectImgBtn addTarget:self action:@selector(selectImageAction:) forControlEvents:UIControlEventTouchUpInside];
-    selectImgBtn.clipsToBounds = YES;
-    selectImgBtn.layer.cornerRadius = 16;
-    selectImgBtn.layer.borderWidth = 1;
-    selectImgBtn.layer.borderColor = [UIColor orangeColor].CGColor;
-    [selectImgBtn setTitle:@"选择图片" forState:UIControlStateNormal];
-    [selectImgBtn setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    selectImgBtn.titleLabel.font = [UIFont systemFontOfSize:13];
-    [self.view addSubview:selectImgBtn];
+    self.resultLabel.frame = CGRectMake(20, 50, self.view.width - 20 * 2, 30);
+    
+    [self imageView];
     
     UIButton *checkBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    checkBtn.frame = CGRectMake(self.view.width * 0.5 + 20, self.imageView.bottom + 30, 90, 32);
+    checkBtn.frame = CGRectMake(20, self.view.height - 30 - 45, self.view.width - 20 * 2, 45);
     [checkBtn addTarget:self action:@selector(startRecognitionAction:) forControlEvents:UIControlEventTouchUpInside];
+    [checkBtn setBackgroundColor:[UIColor whiteColor]];
     checkBtn.clipsToBounds = YES;
-    checkBtn.layer.cornerRadius = 15;
-    checkBtn.layer.borderWidth = 1;
-    checkBtn.layer.borderColor = [UIColor orangeColor].CGColor;
+    checkBtn.layer.cornerRadius = 4;
     [checkBtn setTitle:@"识别图片" forState:UIControlStateNormal];
-    [checkBtn setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    checkBtn.titleLabel.font = [UIFont systemFontOfSize:13];
+    [checkBtn setTitleColor:kGrayColor forState:UIControlStateNormal];
+    checkBtn.titleLabel.font = [UIFont systemFontOfSize:17];
     [self.view addSubview:checkBtn];
     
-    self.resultLabel.frame = CGRectMake(16, checkBtn.bottom + 35, self.view.width - 16 * 2, 20);
-    
-    self.resultRateLabel.frame = CGRectMake(16, self.resultLabel.bottom + 20, self.view.width - 16 * 2, 20);
+    UIButton *selectImgBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    selectImgBtn.frame = CGRectMake(20, checkBtn.top - 20 - 45, self.view.width - 20 * 2, 45);
+    [selectImgBtn addTarget:self action:@selector(selectImageAction:) forControlEvents:UIControlEventTouchUpInside];
+    [selectImgBtn setBackgroundColor:[UIColor whiteColor]];
+    selectImgBtn.clipsToBounds = YES;
+    selectImgBtn.layer.cornerRadius = 4;
+    [selectImgBtn setTitle:@"选择图片" forState:UIControlStateNormal];
+    [selectImgBtn setTitleColor:kGrayColor forState:UIControlStateNormal];
+    selectImgBtn.titleLabel.font = [UIFont systemFontOfSize:17];
+    [self.view addSubview:selectImgBtn];
 }
 
 - (void)startRecognitionAction:(UIButton *)sender {
@@ -78,8 +79,10 @@
             }
         }
         
-        weakSelf.resultLabel.text = tempClassification.identifier;
-        weakSelf.resultRateLabel.text = [NSString stringWithFormat:@"匹配率:%@", @(tempClassification.confidence)];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *result = [NSString stringWithFormat:@"%@ (%.0f%%)", [[tempClassification.identifier componentsSeparatedByString:@", "] firstObject], tempClassification.confidence * 100];
+            weakSelf.resultLabel.text = result;
+        });
     }];
     
     VNImageRequestHandler *vnImageRequestHandler = [[VNImageRequestHandler alloc] initWithCGImage:image.CGImage options:nil];
@@ -116,12 +119,10 @@
 
 - (UIImageView *)imageView {
     if (!_imageView) {
-        _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(16, 30, self.view.width - 16 * 2, 350)];
+        _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(20, 120, self.view.width - 20 * 2, 350)];
         _imageView.contentMode = UIViewContentModeScaleAspectFill;
         _imageView.clipsToBounds = YES;
-        _imageView.layer.cornerRadius = 6;
-        _imageView.layer.borderColor = [UIColor orangeColor].CGColor;
-        _imageView.layer.borderWidth = 1;
+        _imageView.layer.cornerRadius = 4;
         [self.view addSubview:_imageView];
     }
     return _imageView;
@@ -131,22 +132,11 @@
     if (!_resultLabel) {
         _resultLabel = [[UILabel alloc] init];
         _resultLabel.textAlignment = NSTextAlignmentCenter;
-        _resultLabel.font = [UIFont systemFontOfSize:17];
-        _resultLabel.textColor = [UIColor orangeColor];
+        _resultLabel.font = [UIFont boldSystemFontOfSize:22];
+        _resultLabel.textColor = [UIColor whiteColor];
         [self.view addSubview:_resultLabel];
     }
     return _resultLabel;
-}
-
-- (UILabel *)resultRateLabel {
-    if (!_resultRateLabel) {
-        _resultRateLabel = [[UILabel alloc] init];
-        _resultRateLabel.textAlignment = NSTextAlignmentCenter;
-        _resultRateLabel.font = [UIFont systemFontOfSize:14];
-        _resultRateLabel.textColor = [UIColor orangeColor];
-        [self.view addSubview:_resultRateLabel];
-    }
-    return _resultRateLabel;
 }
 
 - (void)didReceiveMemoryWarning {
