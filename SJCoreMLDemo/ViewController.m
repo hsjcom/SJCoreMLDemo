@@ -70,8 +70,9 @@
     
     __weak typeof(self) weakSelf = self;
     VNCoreMLRequest *vnCoreMlRequest = [[VNCoreMLRequest alloc] initWithModel:vnCoreModel completionHandler:^(VNRequest * _Nonnull request, NSError * _Nullable error) {
-        CGFloat confidence = 0.0f;
+        CGFloat confidence = 0.0f; //识别率,值越高应该是越接近的
         VNClassificationObservation *tempClassification = nil;
+        //VNClassificationObservation 对分析结果的一种描述类
         for (VNClassificationObservation *classification in request.results) {
             if (classification.confidence > confidence) {
                 confidence = classification.confidence;
