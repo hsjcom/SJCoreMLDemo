@@ -86,7 +86,7 @@
         });
     }];
     
-    VNImageRequestHandler *vnImageRequestHandler = [[VNImageRequestHandler alloc] initWithCGImage:image.CGImage options:nil];
+    VNImageRequestHandler *vnImageRequestHandler = [[VNImageRequestHandler alloc] initWithCGImage:image.CGImage options:@{}];
     
     NSError *error = nil;
     [vnImageRequestHandler performRequests:@[vnCoreMlRequest] error:&error];
